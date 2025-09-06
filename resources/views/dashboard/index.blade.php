@@ -121,7 +121,7 @@
                         @foreach ($jurusanStats as $stat)
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div class="flex-grow-1">
-                                    <div class="fw-semibold">{{ $stat->nama_jrs }}</div>
+                                    <div class="fw-semibold">{{ $stat->namajrs }}</div>
                                     <div class="progress mt-1" style="height: 8px;">
                                         <div class="progress-bar"
                                             style="width: {{ ($stat->total / $jurusanStats->max('total')) * 100 }}%"></div>

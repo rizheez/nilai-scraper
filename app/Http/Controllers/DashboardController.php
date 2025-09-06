@@ -33,7 +33,7 @@ class DashboardController extends Controller
         $query = Mahasiswa::with('jurusan');
 
         if ($request->filled('jurusan')) {
-            $query->where('kode_jrs', $request->jurusan);
+            $query->where('kodejrs', $request->jurusan);
         }
 
         if ($request->filled('search')) {
@@ -149,8 +149,8 @@ class DashboardController extends Controller
     protected function getJurusanStats()
     {
         return DB::table('mahasiswa')
-            ->select('nama_jrs', DB::raw('count(*) as total'))
-            ->groupBy('nama_jrs')
+            ->select('namajrs', DB::raw('count(*) as total'))
+            ->groupBy('namajrs')
             ->orderBy('total', 'desc')
             ->get();
     }
