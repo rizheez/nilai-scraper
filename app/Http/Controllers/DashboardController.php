@@ -44,10 +44,23 @@ class DashboardController extends Controller
             });
         }
 
+        // Filter by year of tgl_masuk
+        if ($request->filled('tahun_masuk')) {
+            $year = $request->tahun_masuk;
+            $query->whereYear('tgl_masuk', $year);
+        }
+
         $mahasiswa = $query->orderBy('nama')->paginate(15);
         $jurusan = Jurusan::all();
 
-        return view('dashboard.mahasiswa', compact('mahasiswa', 'jurusan'));
+        // Get available years from tgl_masuk for filter dropdown
+        $availableYears = Mahasiswa::whereNotNull('tgl_masuk')
+            ->selectRaw('YEAR(tgl_masuk) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        return view('dashboard.mahasiswa', compact('mahasiswa', 'jurusan', 'availableYears'));
     }
 
     public function mataKuliah(Request $request)
@@ -94,10 +107,25 @@ class DashboardController extends Controller
             });
         }
 
+        // Filter by year of mahasiswa's tgl_masuk
+        if ($request->filled('tahun_masuk')) {
+            $year = $request->tahun_masuk;
+            $query->whereHas('mahasiswa', function ($q) use ($year) {
+                $q->whereYear('tgl_masuk', $year);
+            });
+        }
+
         $nilai = $query->orderBy('nama')->paginate(15);
         $mataKuliah = MataKuliah::all();
 
-        return view('dashboard.nilai', compact('nilai', 'mataKuliah'));
+        // Get available years from mahasiswa tgl_masuk for filter dropdown
+        $availableYears = Mahasiswa::whereNotNull('tgl_masuk')
+            ->selectRaw('YEAR(tgl_masuk) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        return view('dashboard.nilai', compact('nilai', 'mataKuliah', 'availableYears'));
     }
 
     public function detailMahasiswa($id)

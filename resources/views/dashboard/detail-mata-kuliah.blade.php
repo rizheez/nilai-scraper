@@ -8,7 +8,7 @@
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ route('dashboard.mata-kuliah') }}">Mata Kuliah</a></li>
                     <li class="breadcrumb-item active">{{ $mataKuliah->nama_mk }}</li>
                 </ol>
@@ -148,7 +148,7 @@
                                 <a href="{{ route('export.nilai', 'excel') }}?mata_kuliah={{ $mataKuliah->id }}"
                                     class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-file-earmark-excel me-1"></i>
-                                    Export CSV
+                                    Export Excel
                                 </a>
                             </div>
                         </div>
