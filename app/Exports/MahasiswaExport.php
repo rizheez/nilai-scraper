@@ -114,8 +114,8 @@ class MahasiswaExport implements FromCollection, WithHeadings, WithMapping, With
             $mahasiswa->tgl_lahir ? \Carbon\Carbon::parse($mahasiswa->tgl_lahir)->format('Y-m-d') : '',
             $mahasiswa->gender ?? '',
             $mahasiswa->no_ktp ?? '',           // NIK
-            $mahasiswa->nama_agama ?? '',       // Agama
-            $mahasiswa->nisn ?? '',             // NISN (kalau ada di tabel)
+            $mahasiswa->kode_agama ?? '',       // Agama
+            $mahasiswa->asnimmsmhs ?? '',             // NISN (kalau ada di tabel)
             $mahasiswa->id_jalur_masuk ?? '',   // Jalur Pendaftaran
             $mahasiswa->id_npwp_mhs ?? '',      // NPWP
             'ID',                   // Kewarganegaraan (kalau ada)
@@ -131,7 +131,7 @@ class MahasiswaExport implements FromCollection, WithHeadings, WithMapping, With
             $mahasiswa->kode_pos ?? '',
             $mahasiswa->id_jns_tinggal ?? '',   // Jenis Tinggal
             $mahasiswa->id_alat_transport ?? '', // Alat Transportasi
-            $mahasiswa->telp_ortu ?? '',        // Telp Rumah
+            $mahasiswa->telepon ?? '',        // Telp Rumah
             $mahasiswa->hp1 ?? '',              // No HP
             $mahasiswa->email ?? '',
             $mahasiswa->id_kps, // Terima KPS
