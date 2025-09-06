@@ -167,13 +167,13 @@
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{{ route('dashboard.mata-kuliah') }}" class="btn btn-warning w-100 py-3">
+                            <a href="{{ route('dashboard.mata-kuliah') }}" class="btn btn-warning text-white w-100 py-3">
                                 <i class="bi bi-book fs-4 d-block mb-2"></i>
                                 <div>Mata Kuliah</div>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{{ route('dashboard.nilai') }}" class="btn btn-info w-100 py-3">
+                            <a href="{{ route('dashboard.nilai') }}" class="btn btn-info text-white w-100 py-3">
                                 <i class="bi bi-bar-chart fs-4 d-block mb-2"></i>
                                 <div>Data Nilai</div>
                             </a>

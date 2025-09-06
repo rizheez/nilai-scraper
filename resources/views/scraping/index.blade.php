@@ -4,6 +4,33 @@
 @section('page-title', 'Scraping Data')
 
 @section('content')
+    <!-- Quick Status Bar -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">
+                                <i class="bi bi-activity me-2"></i>
+                                Status Scraping Saat Ini
+                            </h6>
+                            <small class="text-muted" id="quick-status-text">Memuat status...</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary" id="active-count">0</span>
+                            <span class="text-muted small">jobs aktif</span>
+                            <a href="{{ route('scraping.status') }}" class="btn btn-sm btn-outline-info ms-2">
+                                <i class="bi bi-eye me-1"></i>
+                                Lihat Detail
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -87,7 +114,7 @@
                                             <option value="">Pilih Jenis...</option>
                                             <option value="nilai">Scrape Nilai Mata Kuliah</option>
                                             <option value="mahasiswa">Scrape Data Mahasiswa</option>
-                                            <option value="both">Scrape Keduanya</option>
+                                            <option value="batch">Batch Scraping (Keduanya)</option>
                                         </select>
                                     </div>
                                 </div>
@@ -122,6 +149,24 @@
                                 Siap untuk memulai scraping
                             </div>
                         </div>
+
+                        <!-- Progress Bar -->
+                        <div id="progress-container" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label">Progress</label>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                        role="progressbar" id="progress-bar" style="width: 0%" aria-valuenow="0"
+                                        aria-valuemin="0" aria-valuemax="100">
+                                        <span id="progress-text">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted" id="progress-message">Memulai scraping...</small>
+                            </div>
+                            <div id="job-details" class="small text-info"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -133,7 +178,14 @@
     <script>
         $(document).ready(function() {
             // Check if already authenticated
+            $('#login-section').hide();
             checkAuthentication();
+
+            // Load initial quick status
+            loadQuickStatus();
+
+            // Auto-refresh quick status every 5 seconds
+            setInterval(loadQuickStatus, 5000);
 
             // Login form handler
             $('#login-form').on('submit', function(e) {
@@ -184,21 +236,14 @@
                     true);
 
                 updateScrapingStatus('Memulai scraping...', 'info');
+                showProgress(true);
 
-                if (scrapingType === 'nilai' || scrapingType === 'both') {
-                    scrapeNilai(formData, function() {
-                        if (scrapingType === 'both') {
-                            scrapeMahasiswa(formData, function() {
-                                submitBtn.html(originalText).prop('disabled', false);
-                            });
-                        } else {
-                            submitBtn.html(originalText).prop('disabled', false);
-                        }
-                    });
+                if (scrapingType === 'batch') {
+                    startBatchScraping(formData, submitBtn, originalText);
+                } else if (scrapingType === 'nilai') {
+                    startScrapingJob('nilai', formData, submitBtn, originalText);
                 } else if (scrapingType === 'mahasiswa') {
-                    scrapeMahasiswa(formData, function() {
-                        submitBtn.html(originalText).prop('disabled', false);
-                    });
+                    startScrapingJob('mahasiswa', formData, submitBtn, originalText);
                 }
             });
 
@@ -207,16 +252,50 @@
                 loadSemesters();
             });
 
+            function loadQuickStatus() {
+                $.ajax({
+                    url: '{{ route('scraping.active-jobs') }}',
+                    method: 'GET',
+                    success: function(response) {
+                        const totalActive = response.total_active;
+                        $('#active-count').text(totalActive);
+
+                        if (totalActive > 0) {
+                            const jobText = totalActive === 1 ? 'job' : 'jobs';
+                            $('#quick-status-text').html(
+                                `<span class="text-warning"><i class="bi bi-gear-fill me-1"></i>${totalActive} ${jobText} sedang berjalan</span>`
+                            );
+                        } else {
+                            $('#quick-status-text').html(
+                                `<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Tidak ada scraping yang berjalan</span>`
+                            );
+                        }
+                    },
+                    error: function() {
+                        $('#quick-status-text').html(
+                            `<span class="text-muted"><i class="bi bi-exclamation-triangle me-1"></i>Gagal memuat status</span>`
+                        );
+                    }
+                });
+            }
+
             function checkAuthentication() {
                 $.ajax({
                     url: '{{ route('scraping.check-session') }}',
                     method: 'GET',
                     success: function(response) {
                         if (response.valid) {
+                            console.log(response)
                             $('#login-section').hide();
                             $('#authenticated-section').show();
                             $('#scraping-section').show();
+                            $('#username-display').text(response.username);
                             loadSemesters();
+                        } else {
+                            $('#login-section').show();
+                            $('#authenticated-section').hide();
+                            $('#scraping-section').hide();
+
                         }
                     }
                 });
@@ -243,64 +322,205 @@
                 });
             }
 
-            function scrapeNilai(formData, callback) {
-                updateScrapingStatus('Melakukan scraping nilai mata kuliah...', 'info');
+            function startScrapingJob(type, formData, submitBtn, originalText) {
+                const url = type === 'nilai' ? '{{ route('scraping.scrape-nilai') }}' :
+                    '{{ route('scraping.scrape-mahasiswa') }}';
 
                 $.ajax({
-                    url: '{{ route('scraping.scrape-nilai') }}',
+                    url: url,
                     method: 'POST',
                     data: formData,
                     success: function(response) {
-                        if (response.success) {
+                        if (response.success && response.queue) {
+                            updateScrapingStatus(`Job ${type} dimulai dengan ID: ${response.job_id}`,
+                                'info');
+                            $('#job-details').html(
+                                `<strong>Job ID:</strong> ${response.job_id}<br><strong>Type:</strong> ${type}`
+                            );
+
+                            // Show success message and option to view status
+                            const statusLink = '{{ route('scraping.status') }}';
                             updateScrapingStatus(
-                                `Berhasil scraping nilai: ${response.processed} dari ${response.total} mata kuliah diproses`,
+                                `Job ${type} berhasil dimulai! <a href="${statusLink}" class="btn btn-sm btn-primary ms-2"><i class="bi bi-eye me-1"></i>Lihat Status</a>`,
                                 'success'
                             );
-                            if (response.errors.length > 0) {
-                                updateScrapingStatus('Beberapa error: ' + response.errors.join(', '),
-                                    'warning');
-                            }
+
+                            pollJobProgress(response.job_id, submitBtn, originalText);
                         } else {
-                            updateScrapingStatus('Gagal scraping nilai', 'danger');
+                            updateScrapingStatus('Gagal memulai job scraping', 'danger');
+                            showProgress(false);
+                            submitBtn.html(originalText).prop('disabled', false);
                         }
                     },
-                    error: function() {
-                        updateScrapingStatus('Error saat scraping nilai', 'danger');
-                    },
-                    complete: function() {
-                        if (callback) callback();
+                    error: function(xhr) {
+                        const response = xhr.responseJSON;
+                        updateScrapingStatus('Error: ' + (response ? response.message :
+                            'Terjadi kesalahan'), 'danger');
+                        showProgress(false);
+                        submitBtn.html(originalText).prop('disabled', false);
                     }
                 });
             }
 
-            function scrapeMahasiswa(formData, callback) {
-                updateScrapingStatus('Melakukan scraping data mahasiswa...', 'info');
+            function startBatchScraping(formData, submitBtn, originalText) {
+                // For batch scraping, we need to modify the form data
+                const modifiedData = formData + '&types[]=nilai&types[]=mahasiswa';
 
                 $.ajax({
-                    url: '{{ route('scraping.scrape-mahasiswa') }}',
+                    url: '{{ route('scraping.batch-scraping') }}',
                     method: 'POST',
-                    data: formData,
+                    data: modifiedData,
                     success: function(response) {
-                        if (response.success) {
+                        if (response.success && response.queue) {
                             updateScrapingStatus(
-                                `Berhasil scraping mahasiswa: ${response.processed} dari ${response.total} mahasiswa diproses`,
+                                `Batch scraping dimulai dengan ID: ${response.batch_id}`, 'info');
+                            $('#job-details').html(
+                                `<strong>Batch ID:</strong> ${response.batch_id}<br><strong>Types:</strong> ${response.types.join(', ')}`
+                            );
+
+                            // Show success message and option to view status
+                            const statusLink = '{{ route('scraping.status') }}';
+                            updateScrapingStatus(
+                                `Batch scraping berhasil dimulai! <a href="${statusLink}" class="btn btn-sm btn-primary ms-2"><i class="bi bi-eye me-1"></i>Lihat Status</a>`,
                                 'success'
                             );
-                            if (response.errors.length > 0) {
-                                updateScrapingStatus('Beberapa error: ' + response.errors.join(', '),
-                                    'warning');
-                            }
+
+                            pollBatchProgress(response.batch_id, submitBtn, originalText);
                         } else {
-                            updateScrapingStatus('Gagal scraping mahasiswa', 'danger');
+                            updateScrapingStatus('Gagal memulai batch scraping', 'danger');
+                            showProgress(false);
+                            submitBtn.html(originalText).prop('disabled', false);
                         }
                     },
-                    error: function() {
-                        updateScrapingStatus('Error saat scraping mahasiswa', 'danger');
-                    },
-                    complete: function() {
-                        if (callback) callback();
+                    error: function(xhr) {
+                        const response = xhr.responseJSON;
+                        updateScrapingStatus('Error: ' + (response ? response.message :
+                            'Terjadi kesalahan'), 'danger');
+                        showProgress(false);
+                        submitBtn.html(originalText).prop('disabled', false);
                     }
                 });
+            }
+
+            function pollJobProgress(jobId, submitBtn, originalText) {
+                const pollInterval = setInterval(function() {
+                    $.ajax({
+                        url: '{{ route('scraping.job-progress') }}',
+                        method: 'GET',
+                        data: {
+                            job_id: jobId
+                        },
+                        success: function(response) {
+                            updateProgressBar(response.progress, response.message);
+
+                            if (response.status === 'completed') {
+                                clearInterval(pollInterval);
+                                updateScrapingStatus(
+                                    `Scraping selesai! ${response.processed || 0} dari ${response.total || 0} item diproses`,
+                                    'success'
+                                );
+                                showProgress(false);
+                                submitBtn.html(originalText).prop('disabled', false);
+                            } else if (response.status === 'failed') {
+                                clearInterval(pollInterval);
+                                updateScrapingStatus('Scraping gagal: ' + (response.error ||
+                                        response.message),
+                                    'danger');
+                                showProgress(false);
+                                submitBtn.html(originalText).prop('disabled', false);
+                            } else if (response.status === 'not_found') {
+                                clearInterval(pollInterval);
+                                updateScrapingStatus(
+                                    'Job tidak ditemukan atau sudah selesai. Silakan periksa Status Scraping untuk detail lebih lanjut.',
+                                    'warning'
+                                );
+                                showProgress(false);
+                                submitBtn.html(originalText).prop('disabled', false);
+                            } else if (response.status === 'queued') {
+                                // Update progress for queued jobs
+                                updateProgressBar(0,
+                                    `Job dalam antrian${response.queue_position ? ` (posisi: ${response.queue_position})` : ''}...`
+                                    );
+                            }
+                        },
+                        error: function(xhr) {
+                            // Handle 404 and other errors
+                            if (xhr.status === 404) {
+                                const response = xhr.responseJSON;
+                                if (response && response.status === 'not_found') {
+                                    clearInterval(pollInterval);
+                                    updateScrapingStatus(
+                                        'Job tidak ditemukan atau sudah selesai.',
+                                        'warning'
+                                    );
+                                    showProgress(false);
+                                    submitBtn.html(originalText).prop('disabled', false);
+                                }
+                            }
+                            // For other errors, continue polling (job might not be started yet)
+                        }
+                    });
+                }, 2000); // Poll every 2 seconds
+            }
+
+            function pollBatchProgress(batchId, submitBtn, originalText) {
+                const pollInterval = setInterval(function() {
+                    $.ajax({
+                        url: '{{ route('scraping.batch-progress') }}',
+                        method: 'GET',
+                        data: {
+                            batch_id: batchId
+                        },
+                        success: function(response) {
+                            updateProgressBar(response.batch.progress, response.batch.message);
+
+                            // Update job details with individual job progress
+                            let jobDetailsHtml = `<strong>Batch ID:</strong> ${batchId}<br>`;
+                            if (response.jobs) {
+                                jobDetailsHtml += '<strong>Jobs:</strong><br>';
+                                Object.keys(response.jobs).forEach(function(jobId) {
+                                    const job = response.jobs[jobId];
+                                    jobDetailsHtml +=
+                                        `&nbsp;&nbsp;• ${job.type}: ${Math.round(job.progress)}% - ${job.message}<br>`;
+                                });
+                            }
+                            $('#job-details').html(jobDetailsHtml);
+
+                            if (response.batch.status === 'completed') {
+                                clearInterval(pollInterval);
+                                updateScrapingStatus('Batch scraping selesai!', 'success');
+                                showProgress(false);
+                                submitBtn.html(originalText).prop('disabled', false);
+                            } else if (response.batch.status === 'failed') {
+                                clearInterval(pollInterval);
+                                updateScrapingStatus('Batch scraping gagal: ' + response.batch
+                                    .error, 'danger');
+                                showProgress(false);
+                                submitBtn.html(originalText).prop('disabled', false);
+                            }
+                        },
+                        error: function() {
+                            // Batch might not be started yet, continue polling
+                        }
+                    });
+                }, 3000); // Poll every 3 seconds for batch
+            }
+
+            function showProgress(show) {
+                if (show) {
+                    $('#progress-container').show();
+                    $('#scraping-status').hide();
+                } else {
+                    $('#progress-container').hide();
+                    $('#scraping-status').show();
+                }
+            }
+
+            function updateProgressBar(percentage, message) {
+                const roundedPercentage = Math.round(percentage);
+                $('#progress-bar').css('width', percentage + '%').attr('aria-valuenow', percentage);
+                $('#progress-text').text(roundedPercentage + '%');
+                $('#progress-message').text(message || 'Processing...');
             }
 
             function updateScrapingStatus(message, type) {
@@ -317,6 +537,9 @@
         `;
 
                 $('#scraping-status').html(statusHtml);
+
+                // Refresh quick status when status changes
+                loadQuickStatus();
             }
         });
     </script>

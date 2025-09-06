@@ -25,7 +25,7 @@
                                 <a href="{{ route('export.nilai', 'excel') }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                     class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-file-earmark-excel me-1"></i>
-                                    Export CSV
+                                    Export Excel
                                 </a>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                 <div class="card-body">
                     <form method="GET" action="{{ route('dashboard.nilai') }}">
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="mata_kuliah" class="form-label">Mata Kuliah</label>
                                     <select class="form-select" id="mata_kuliah" name="mata_kuliah">
@@ -48,7 +48,21 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-2">
+                                <div class="mb-3">
+                                    <label for="tahun_masuk" class="form-label">Tahun Masuk</label>
+                                    <select class="form-select" id="tahun_masuk" name="tahun_masuk">
+                                        <option value="">Semua Tahun</option>
+                                        @foreach ($availableYears as $year)
+                                            <option value="{{ $year }}"
+                                                {{ request('tahun_masuk') == $year ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="search" class="form-label">Pencarian (NIM / Nama)</label>
                                     <input type="text" class="form-control" id="search" name="search"
@@ -67,6 +81,34 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if(request()->hasAny(['mata_kuliah', 'tahun_masuk', 'search']))
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info py-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <i class="bi bi-funnel me-1"></i>
+                                                <strong>Filter Aktif:</strong>
+                                                @if(request('mata_kuliah'))
+                                                    <span class="badge bg-primary ms-1">Mata Kuliah: {{ collect($mataKuliah)->where('id', request('mata_kuliah'))->first()->nama_mk ?? 'ID: ' . request('mata_kuliah') }}</span>
+                                                @endif
+                                                @if(request('tahun_masuk'))
+                                                    <span class="badge bg-success ms-1">Tahun Masuk: {{ request('tahun_masuk') }}</span>
+                                                @endif
+                                                @if(request('search'))
+                                                    <span class="badge bg-warning ms-1">Pencarian: "{{ request('search') }}"</span>
+                                                @endif
+                                            </div>
+                                            <a href="{{ route('dashboard.nilai') }}" class="btn btn-outline-secondary btn-sm">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Reset Filter
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </form>
                 </div>
             </div>

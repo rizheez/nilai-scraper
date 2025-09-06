@@ -74,6 +74,8 @@
             animation: slideDown 0.3s ease-out;
         }
 
+
+
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -92,7 +94,7 @@
     <!-- Sidebar -->
     <nav class="navbar navbar-expand-md navbar-light bg-light d-md-none">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('dashboard') }}">
+            <a class="navbar-brand" href="{{ route('dashboard.index') }}">
                 <i class="bi bi-graph-up"></i> Nilai Scraper
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
@@ -104,26 +106,35 @@
     <div class="container-fluid">
         <div class="row">
             <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
-                <div class="position-sticky pt-3">
-                    <div class="d-none d-md-block mb-3">
-                        <h4 class="px-3 text-primary">
-                            <i class="bi bi-graph-up"></i> Nilai Scraper
+                <div class="d-flex flex-column h-100">
+                    <!-- Header -->
+                    <div class="d-none d-md-block mb-3 px-3 pt-3">
+                        <h4 class="text-primary">
+                            <i class="bi bi-graph-up"></i> UNU Scraper
                         </h4>
                     </div>
 
-                    <ul class="nav flex-column">
+                    <!-- Menu -->
+                    <ul class="nav flex-column px-2">
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-                                href="{{ route('dashboard') }}">
+                            <a class="nav-link {{ request()->routeIs('dashboard.index') ? 'active' : '' }}"
+                                href="{{ route('dashboard.index') }}">
                                 <i class="bi bi-house"></i>
                                 Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('scraping.*') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->routeIs('scraping.index') ? 'active' : '' }}"
                                 href="{{ route('scraping.index') }}">
                                 <i class="bi bi-cloud-download"></i>
                                 Scraping Data
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('scraping.status') ? 'active' : '' }}"
+                                href="{{ route('scraping.status') }}">
+                                <i class="bi bi-activity"></i>
+                                Status Scraping
                             </a>
                         </li>
                         <li class="nav-item">
@@ -148,6 +159,19 @@
                             </a>
                         </li>
                     </ul>
+
+                    <!-- Logout (paling bawah) -->
+                    <div class="mt-auto p-3 ">
+                        <div class="rounded-pill ">
+                            <form action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="logout btn btn-danger ">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </nav>
 

@@ -25,7 +25,7 @@
                                 <a href="{{ route('export.mata-kuliah', 'excel') }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                     class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-file-earmark-excel me-1"></i>
-                                    Export CSV
+                                    Export Excel
                                 </a>
                             </div>
                         </div>

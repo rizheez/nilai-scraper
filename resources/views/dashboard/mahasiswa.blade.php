@@ -25,7 +25,7 @@
                                 <a href="{{ route('export.mahasiswa', 'excel') }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}"
                                     class="btn btn-outline-success btn-sm">
                                     <i class="bi bi-file-earmark-excel me-1"></i>
-                                    Export CSV
+                                    Export Excel
                                 </a>
                             </div>
                         </div>
@@ -34,7 +34,7 @@
                 <div class="card-body">
                     <form method="GET" action="{{ route('dashboard.mahasiswa') }}">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <div class="mb-3">
                                     <label for="jurusan" class="form-label">Jurusan</label>
                                     <select class="form-select" id="jurusan" name="jurusan">
@@ -48,7 +48,21 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="tahun_masuk" class="form-label">Tahun Masuk</label>
+                                    <select class="form-select" id="tahun_masuk" name="tahun_masuk">
+                                        <option value="">Semua Tahun</option>
+                                        @foreach ($availableYears as $year)
+                                            <option value="{{ $year }}"
+                                                {{ request('tahun_masuk') == $year ? 'selected' : '' }}>
+                                                {{ $year }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="search" class="form-label">Pencarian (NIM / Nama)</label>
                                     <input type="text" class="form-control" id="search" name="search"
@@ -67,6 +81,38 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if (request()->hasAny(['jurusan', 'tahun_masuk', 'search']))
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info py-2">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div>
+                                                <i class="bi bi-funnel me-1"></i>
+                                                <strong>Filter Aktif:</strong>
+                                                @if (request('jurusan'))
+                                                    <span class="badge bg-primary ms-1">Jurusan:
+                                                        {{ collect($jurusan)->where('kode_jrs', request('jurusan'))->first()->nama_jrs ?? request('jurusan') }}</span>
+                                                @endif
+                                                @if (request('tahun_masuk'))
+                                                    <span class="badge bg-success ms-1">Tahun Masuk:
+                                                        {{ request('tahun_masuk') }}</span>
+                                                @endif
+                                                @if (request('search'))
+                                                    <span class="badge bg-warning ms-1">Pencarian:
+                                                        "{{ request('search') }}"</span>
+                                                @endif
+                                            </div>
+                                            <a href="{{ route('dashboard.mahasiswa') }}"
+                                                class="btn btn-outline-secondary btn-sm">
+                                                <i class="bi bi-x-circle me-1"></i>
+                                                Reset Filter
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </form>
                 </div>
             </div>
@@ -91,6 +137,7 @@
                                         <th>NIM</th>
                                         <th>Nama</th>
                                         <th>Jurusan</th>
+                                        <th>Tahun Masuk</th>
                                         <th>Email</th>
                                         <th>IPK</th>
                                         <th>Aksi</th>
@@ -104,16 +151,24 @@
                                             </td>
                                             <td>
                                                 <div class="fw-semibold">{{ $mhs->nama }}</div>
-                                                @if ($mhs->tempat_lahir && $mhs->tanggal_lahir)
+                                                @if ($mhs->tem_lahir && $mhs->tgl_lahir)
                                                     <small class="text-muted">
-                                                        {{ $mhs->tempat_lahir }},
-                                                        {{ \Carbon\Carbon::parse($mhs->tanggal_lahir)->format('d/m/Y') }}
+                                                        {{ $mhs->tem_lahir }},
+                                                        {{ \Carbon\Carbon::parse($mhs->tgl_lahir)->format('d/m/Y') }}
                                                     </small>
                                                 @endif
                                             </td>
                                             <td>
-                                                <span
-                                                    class="badge bg-primary">{{ $mhs->nama_jrs ?: $mhs->kode_jrs }}</span>
+                                                <span class="badge bg-primary">{{ $mhs->namajrs ?: $mhs->kodejrs }}</span>
+                                            </td>
+                                            <td>
+                                                @if ($mhs->tgl_masuk)
+                                                    <span class="badge bg-info">
+                                                        {{ \Carbon\Carbon::parse($mhs->tgl_masuk)->format('Y') }}
+                                                    </span>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
                                             </td>
                                             <td>
                                                 @if ($mhs->email)
@@ -148,7 +203,7 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div class="d-flex justify-content-center">
+                        <div>
                             {{ $mahasiswa->withQueryString()->links() }}
                         </div>
                     @else
