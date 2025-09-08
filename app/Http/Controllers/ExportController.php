@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Nilai;
 use App\Models\Jurusan;
+use App\Models\Semester;
 use App\Models\Mahasiswa;
 use App\Models\MataKuliah;
 use App\Exports\NilaiExport;
@@ -19,6 +20,7 @@ class ExportController extends Controller
     {
         $query = Mahasiswa::with('jurusan');
         $jur = 'Semua Jurusan';
+        $tahun = 'Semua Tahun';
         // Apply filters
         if ($request->filled('jurusan')) {
             $query->where('kodejrs', $request->jurusan);
@@ -36,6 +38,7 @@ class ExportController extends Controller
         // Filter by year of tgl_masuk
         if ($request->filled('tahun_masuk')) {
             $year = $request->tahun_masuk;
+            $tahun = $request->tahun_masuk;
             $query->whereYear('tgl_masuk', $year)->whereMonth('tgl_masuk', '>=', 7)->whereMonth('tgl_masuk', '<=', 12);
         }
 
@@ -43,7 +46,7 @@ class ExportController extends Controller
         if ($format === 'json') {
             return $this->exportMahasiswaJson($mahasiswa);
         } elseif ($format === 'excel') {
-            return $this->exportMahasiswaExcel($mahasiswa, $jur);
+            return $this->exportMahasiswaExcel($mahasiswa, $jur, $tahun);
         }
 
         return redirect()->back()->with('error', 'Format tidak didukung');
@@ -76,10 +79,21 @@ class ExportController extends Controller
     public function nilai(Request $request, $format)
     {
         $query = Nilai::with(['mataKuliah', 'mahasiswa']);
-
+        $jur = '';
+        $mk = 'Semua mk';
+        $kelas = '';
+        $tahun = '';
         // Apply filters
         if ($request->filled('mata_kuliah')) {
             $query->where('mata_kuliah_id', $request->mata_kuliah);
+            $mataKuliah = MataKuliah::with('jurusan')->find($request->mata_kuliah);
+            if ($mataKuliah) {
+                $mk = $mataKuliah->nama_mk;
+                $kelas = $mataKuliah->kelas;
+                $jur = $mataKuliah->jurusan->nama_jrs;
+                $tahun = Semester::where('smtthnakd', $mataKuliah->smtthnakd)->first()->keterangan;
+                $tahun = str_replace('/', '-', $tahun);
+            }
         }
 
         if ($request->filled('search')) {
@@ -103,7 +117,7 @@ class ExportController extends Controller
         if ($format === 'json') {
             return $this->exportNilaiJson($nilai);
         } elseif ($format === 'excel') {
-            return $this->exportNilaiExcel($nilai);
+            return $this->exportNilaiExcel($nilai, $mk, $jur, $kelas, $tahun);
         }
 
         return redirect()->back()->with('error', 'Format tidak didukung');
@@ -121,9 +135,11 @@ class ExportController extends Controller
         return Response::make($mahasiswa->toJson(JSON_PRETTY_PRINT), 200, $headers);
     }
 
-    protected function exportMahasiswaExcel($mahasiswa, $jurusan = null)
+    protected function exportMahasiswaExcel($mahasiswa, $jurusan = null, $tahun = null)
     {
-        $filename = 'mahasiswa_' . $jurusan . '_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $jrs = $jurusan ? $jurusan : '';
+        $thn = $tahun ? $tahun : date('Y-m-d_s');
+        $filename = "Mahasiswa_{$jrs}_{$thn}.xlsx";
 
         return Excel::download(new MahasiswaExport($mahasiswa), $filename);
     }
@@ -159,9 +175,15 @@ class ExportController extends Controller
         return Response::make($nilai->toJson(JSON_PRETTY_PRINT), 200, $headers);
     }
 
-    protected function exportNilaiExcel($nilai)
+    protected function exportNilaiExcel($nilai, $mk = null, $jurusan = null, $kelas = null, $tahun = null)
     {
-        $filename = 'nilai_' . date('Y-m-d_H-i-s') . '.xlsx';
+        $mataKuliah = $mk ? $mk : '';
+        $jrs = $jurusan ? $jurusan : '';
+        $thn = $tahun ? $tahun : date('Y-m-d_s');
+        $kls = $kelas ? $kelas : '';
+
+
+        $filename = "Nilai_{$mataKuliah}_R-{$kls}_{$jrs}_{$thn}.xlsx";
 
         return Excel::download(new NilaiExport($nilai), $filename);
     }
