@@ -36,7 +36,7 @@ class ExportController extends Controller
         // Filter by year of tgl_masuk
         if ($request->filled('tahun_masuk')) {
             $year = $request->tahun_masuk;
-            $query->whereYear('tgl_masuk', $year);
+            $query->whereYear('tgl_masuk', $year)->whereMonth('tgl_masuk', '>=', 7)->whereMonth('tgl_masuk', '<=', 12);
         }
 
         $mahasiswa = $query->get();

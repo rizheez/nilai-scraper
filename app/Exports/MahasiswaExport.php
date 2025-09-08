@@ -4,15 +4,20 @@ namespace App\Exports;
 
 use App\Models\Mahasiswa;
 use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class MahasiswaExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
+class MahasiswaExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, WithCustomValueBinder, WithColumnFormatting
 {
     protected $mahasiswa;
 
@@ -132,7 +137,7 @@ class MahasiswaExport implements FromCollection, WithHeadings, WithMapping, With
             $mahasiswa->id_jns_tinggal ?? '',   // Jenis Tinggal
             $mahasiswa->id_alat_transport ?? '', // Alat Transportasi
             $mahasiswa->telepon ?? '',        // Telp Rumah
-            $mahasiswa->hp1 ?? '',              // No HP
+            $mahasiswa->hp1 ? (str_starts_with($mahasiswa->hp1, '0') ? $mahasiswa->hp1 : '0' . $mahasiswa->hp1) : '',              // No HP
             $mahasiswa->email ?? '',
             $mahasiswa->id_kps, // Terima KPS
             $mahasiswa->no_kps ?? '',           // No KPS
@@ -176,6 +181,13 @@ class MahasiswaExport implements FromCollection, WithHeadings, WithMapping, With
             // Style the first row as bold text
             1 => ['font' => ['bold' => true]],
         ];
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        $cell->setValueExplicit($value, DataType::TYPE_STRING);
+
+        return parent::bindValue($cell, $value);
     }
 
     public function columnFormats(): array
