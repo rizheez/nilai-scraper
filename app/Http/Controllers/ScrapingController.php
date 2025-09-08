@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Configs;
 use App\Models\Jurusan;
 use App\Models\Semester;
 use App\Models\MataKuliah;
@@ -170,8 +171,10 @@ class ScrapingController extends Controller
     {
         $jurusan = Jurusan::all();
         $semester = Semester::all();
+        $username = Configs::get('username_siakad', false, '');
+        $password = Configs::get('password_siakad', true, '');
 
-        return view('scraping.index', compact('jurusan', 'semester'));
+        return view('scraping.index', compact('jurusan', 'semester', 'username', 'password'));
     }
 
     public function login(Request $request)

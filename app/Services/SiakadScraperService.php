@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Configs;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Client\PendingRequest;
@@ -59,6 +60,9 @@ class SiakadScraperService
             // Prepare login data
             $hideValidation = $this->generateValidation();
             $hideIp = $this->getRandomIp();
+
+            Configs::set('username_siakad', $username);
+            Configs::set('password_siakad', $password, true);
 
             $loginData = [
                 'username' => $username,

@@ -63,6 +63,12 @@
 <body>
     <div class="login-card">
         <h2 class="login-title">Login</h2>
+        {{-- handle error --}}
+        @error('email')
+            <div class="alert alert-danger">
+                {{ $message }}
+            </div>
+        @enderror
         <form action="{{ route('login') }}" method="POST">
             @csrf
             <div class="mb-3">

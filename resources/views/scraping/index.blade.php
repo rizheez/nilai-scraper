@@ -13,7 +13,7 @@
                         <div>
                             <h6 class="mb-1">
                                 <i class="bi bi-activity me-2"></i>
-                                Status Scraping Saat Ini
+                                Status Scraping Saat Ini {{ $username }}
                             </h6>
                             <small class="text-muted" id="quick-status-text">Memuat status...</small>
                         </div>
@@ -186,7 +186,8 @@
 
             // Auto-refresh quick status every 5 seconds
             setInterval(loadQuickStatus, 5000);
-
+            $('#username').val('{{ $username }}');
+            $('#password').val('{{ $password }}');
             // Login form handler
             $('#login-form').on('submit', function(e) {
                 e.preventDefault();
@@ -440,7 +441,7 @@
                                 // Update progress for queued jobs
                                 updateProgressBar(0,
                                     `Job dalam antrian${response.queue_position ? ` (posisi: ${response.queue_position})` : ''}...`
-                                    );
+                                );
                             }
                         },
                         error: function(xhr) {
