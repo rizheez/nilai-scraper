@@ -36,7 +36,7 @@ class SiakadScraperService
             'Referer' => $this->baseUrl . '/media.php',
             'Origin' => $this->baseUrl,
             'Accept' => 'application/json, text/javascript, */*; q=0.01',
-        ])->timeout(30);
+        ])->timeout(120)->retry(3, 5000);
 
         if ($this->cookie) {
             $client = $client->withHeaders(['Cookie' => $this->cookie]);

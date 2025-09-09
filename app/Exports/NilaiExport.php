@@ -35,18 +35,25 @@ class NilaiExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         return [
             'NIM',
             'Nama',
+            'Kode Mata Kuliah',
             'Mata Kuliah',
-            'Kelas',
-            'Dosen',
-            'Tahun Masuk',
-            'Nilai Angka',
-            'Nilai Huruf',
+            'Semester',
+            'Nama Kelas',
             'Kehadiran',
             'Projek',
             'Quiz',
             'Tugas',
             'UTS',
-            'UAS'
+            'UAS',
+            'Kode Prodi Mahasiswa',
+            'Nama Prodi Mahasiswa',
+            'Kode Prodi',
+            'Nama Prodi Kelas',
+            'Nilai Huruf',
+            'Nilai Indeks',
+            'Nilai Angka',
+            'Dosen',
+            'Tahun Masuk',
         ];
     }
 
@@ -68,18 +75,25 @@ class NilaiExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         return [
             $nilai->nim,
             $nilai->nama,
+            $nilai->mataKuliah->kode_mk ?? '',
             $nilai->mataKuliah->nama_mk ?? '',
-            $nilai->mataKuliah->kelas ?? '',
-            $nilai->mataKuliah->nama_dosen ?? '',
-            $tahunMasuk,
-            $nilai->nil_angka ?? '',
-            $nilai->nil_huruf ?? '',
+            $nilai->mataKuliah->smtthnakd ?? '',
+            'R' . $nilai->mataKuliah->kelas ?? '',
             $nilai->hadir ?? '',
             $nilai->projek ?? '',
             $nilai->quiz ?? '',
             $nilai->tugas ?? '',
             $nilai->uts ?? '',
             $nilai->uas ?? '',
+            $nilai->mahasiswa->kodejrs ?? '',
+            $nilai->mahasiswa->namajrs ?? '',
+            $nilai->mahasiswa->kodejrs ?? '',
+            $nilai->mahasiswa->namajrs ?? '',
+            $nilai->nil_huruf ?? '',
+            '',
+            $nilai->nil_angka ?? '',
+            $nilai->mataKuliah->nama_dosen ?? '',
+            $tahunMasuk
         ];
     }
 

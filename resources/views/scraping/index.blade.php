@@ -13,7 +13,7 @@
                         <div>
                             <h6 class="mb-1">
                                 <i class="bi bi-activity me-2"></i>
-                                Status Scraping Saat Ini {{ $username }}
+                                Status Scraping Saat Ini
                             </h6>
                             <small class="text-muted" id="quick-status-text">Memuat status...</small>
                         </div>
@@ -53,7 +53,13 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="password" class="form-label">Password SIAKAD</label>
-                                        <input type="password" class="form-control" id="password" name="password" required>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="password" name="password"
+                                                required>
+                                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -177,6 +183,20 @@
 @push('scripts')
     <script>
         $(document).ready(function() {
+            // Toggle password visibility
+            $('#togglePassword').on('click', function() {
+                const passwordField = $('#password');
+                const passwordIcon = $('#togglePasswordIcon');
+
+                if (passwordField.attr('type') === 'password') {
+                    passwordField.attr('type', 'text');
+                    passwordIcon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    passwordField.attr('type', 'password');
+                    passwordIcon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+
             // Check if already authenticated
             $('#login-section').hide();
             checkAuthentication();
@@ -233,8 +253,7 @@
                 const submitBtn = $(this).find('button[type="submit"]');
                 const originalText = submitBtn.html();
 
-                submitBtn.html('<i class="bi bi-hourglass-split me-2"></i>Processing...').prop('disabled',
-                    true);
+
 
                 updateScrapingStatus('Memulai scraping...', 'info');
                 showProgress(true);
