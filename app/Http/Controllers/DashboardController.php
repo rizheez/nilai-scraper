@@ -40,7 +40,8 @@ class DashboardController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nim', 'like', "%{$search}%")
-                    ->orWhere('nama', 'like', "%{$search}%");
+                    ->orWhere('nama', 'like', "%{$search}%")
+                    ->orWhere('no_ktp', 'like', "%{$search}%");
             });
         }
 
