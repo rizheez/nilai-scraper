@@ -227,9 +227,9 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div class="d-flex justify-content-center">
+
                             {{ $nilai->withQueryString()->links() }}
-                        </div>
+
                     @else
                         <div class="text-center text-muted py-5">
                             <i class="bi bi-clipboard-x fs-1 d-block mb-3"></i>

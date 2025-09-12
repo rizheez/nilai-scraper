@@ -30,7 +30,7 @@ Route::middleware(['auth'])->group(function () {
             ->name('detail-mahasiswa');
         Route::get('/mata-kuliah/{id}', [DashboardController::class, 'detailMataKuliah'])
             ->whereNumber('id')
-            ->name('detail-mata-kuliah');
+            ->name('mata-kuliah-detail');
     });
 
     // Scraping
