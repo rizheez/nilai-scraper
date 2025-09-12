@@ -140,7 +140,7 @@
                                                 <span class="badge bg-primary">{{ $mk->nama_jrs }}</span>
                                             </td>
                                             <td>
-                                                <a href="{{ route('dashboard.detail-mata-kuliah', $mk->id) }}"
+                                                <a href="{{ route('dashboard.mata-kuliah-detail', $mk->id) }}"
                                                     class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye me-1"></i>
                                                     Detail
@@ -153,9 +153,8 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div class="d-flex justify-content-center">
+
                             {{ $mataKuliah->withQueryString()->links() }}
-                        </div>
                     @else
                         <div class="text-center text-muted py-5">
                             <i class="bi bi-book-half fs-1 d-block mb-3"></i>

@@ -145,7 +145,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard.mata-kuliah') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->routeIs('dashboard.mata-kuliah*') ? 'active' : '' }}"
                                 href="{{ route('dashboard.mata-kuliah') }}">
                                 <i class="bi bi-book"></i>
                                 Mata Kuliah
