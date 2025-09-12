@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use ZipArchive;
 use App\Models\Nilai;
 use App\Models\Jurusan;
 use App\Models\Semester;
@@ -11,7 +12,10 @@ use App\Exports\NilaiExport;
 use Illuminate\Http\Request;
 use App\Exports\MahasiswaExport;
 use App\Exports\MataKuliahExport;
+use App\Exports\NilaiExportFormatA;
+use App\Exports\NilaiExportFormatB;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 
 class ExportController extends Controller
@@ -177,14 +181,44 @@ class ExportController extends Controller
 
     protected function exportNilaiExcel($nilai, $mk = null, $jurusan = null, $kelas = null, $tahun = null)
     {
-        $mataKuliah = $mk ? $mk : '';
-        $jrs = $jurusan ? $jurusan : '';
-        $thn = $tahun ? $tahun : date('Y-m-d_s');
-        $kls = $kelas ? $kelas : '';
+        $mataKuliah = $mk ?? '';
+        $jrs        = $jurusan ?? '';
+        $thn        = $tahun ?? date('Ymd_His');
+        $kls        = $kelas ?? '';
+        $mataKuliah = $this->sanitizeFilename($mataKuliah);
 
+        $fileA = "Nilai_{$mataKuliah}_R-{$kls}_{$jrs}_{$thn}_nilai_indeks.xlsx";
+        $fileB = "Nilai_{$mataKuliah}_R-{$kls}_{$jrs}_{$thn}_nilai_komponen.xlsx";
 
-        $filename = "Nilai_{$mataKuliah}_R-{$kls}_{$jrs}_{$thn}.xlsx";
+        Excel::store(new NilaiExportFormatA($nilai), $fileA, 'local');
+        Excel::store(new NilaiExportFormatB($nilai), $fileB, 'local');
 
-        return Excel::download(new NilaiExport($nilai), $filename);
+        $fileAPath = Storage::disk('local')->path($fileA);
+        $fileBPath = Storage::disk('local')->path($fileB);
+
+        $zipName = "Nilai_{$mataKuliah}_R-{$kls}_{$jrs}_{$thn}.zip";
+        $zipFile = storage_path("app/{$zipName}");
+
+        $zip = new ZipArchive;
+        if ($zip->open($zipFile, ZipArchive::CREATE) === TRUE) {
+            $zip->addFile($fileAPath, $fileA);
+            $zip->addFile($fileBPath, $fileB);
+            $zip->close();
+        }
+
+        Storage::disk('local')->delete([$fileA, $fileB]);
+
+        return response()->download($zipFile)->deleteFileAfterSend(true);
+    }
+
+    protected function sanitizeFilename($filename)
+    {
+        $string = preg_replace('/[\/\\\?%*:|"<>]/', '_', $filename);
+        $string = preg_replace('/\s+/', '_', $string);
+        $string = preg_replace('/_+/', '_', $string);
+        $string = preg_replace('/[\x00-\x1F\x7F]/u', '', $string);
+        $string = trim($string, '_.');
+
+        return substr($string, 0, 200);
     }
 }
