@@ -27,7 +27,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/nilai', [DashboardController::class, 'nilai'])->name('nilai');
         Route::get('/mahasiswa/{id}', [DashboardController::class, 'detailMahasiswa'])
             ->whereNumber('id')
-            ->name('detail-mahasiswa');
+            ->name('mahasiswa-detail');
         Route::get('/mata-kuliah/{id}', [DashboardController::class, 'detailMataKuliah'])
             ->whereNumber('id')
             ->name('mata-kuliah-detail');

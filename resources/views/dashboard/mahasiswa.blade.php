@@ -190,7 +190,7 @@
                                                 @endif
                                             </td>
                                             <td>
-                                                <a href="{{ route('dashboard.detail-mahasiswa', $mhs->id) }}"
+                                                <a href="{{ route('dashboard.mahasiswa-detail', $mhs->id) }}"
                                                     class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye me-1"></i>
                                                     Detail

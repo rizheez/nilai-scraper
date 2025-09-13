@@ -138,7 +138,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard.mahasiswa') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->routeIs('dashboard.mahasiswa*') ? 'active' : '' }}"
                                 href="{{ route('dashboard.mahasiswa') }}">
                                 <i class="bi bi-people"></i>
                                 Data Mahasiswa
@@ -152,7 +152,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard.nilai') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->routeIs('dashboard.nilai*') ? 'active' : '' }}"
                                 href="{{ route('dashboard.nilai') }}">
                                 <i class="bi bi-bar-chart"></i>
                                 Data Nilai
